@@ -2,47 +2,36 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>MNEWS Live Generator</title>
+<title>Canvas Test</title>
 
 <style>
 body{
   background:#111;
   color:white;
-  font-family:Arial, sans-serif;
+  font-family:Arial;
   text-align:center;
   padding:20px;
 }
 
-textarea, input{
+input, textarea{
   width:80%;
   padding:10px;
   margin:10px 0;
-  font-size:16px;
-}
-
-button{
-  padding:10px 20px;
-  margin:10px;
-  font-size:16px;
-  cursor:pointer;
 }
 
 canvas{
-  margin-top:20px;
   width:360px;
   height:450px;
   border:1px solid #333;
+  margin-top:20px;
 }
 </style>
 </head>
 <body>
 
-<h2>MNEWS Live Post Generator</h2>
+<h2>Canvas Working Test</h2>
 
-<input type="text" id="category" placeholder="Category" />
-<br>
-
-<textarea id="headline" placeholder="Headline"></textarea>
+<textarea id="headline" placeholder="Type something..."></textarea>
 <br>
 
 <input type="file" id="imageUpload" accept="image/*">
@@ -65,14 +54,15 @@ document.getElementById("imageUpload").addEventListener("change", function(e){
   const reader = new FileReader();
   reader.onload = function(event){
     bgImage = new Image();
-    bgImage.onload = render;
+    bgImage.onload = function(){
+      render();
+    };
     bgImage.src = event.target.result;
   };
   reader.readAsDataURL(e.target.files[0]);
 });
 
 document.getElementById("headline").addEventListener("input", render);
-document.getElementById("category").addEventListener("input", render);
 
 function render(){
 
@@ -84,12 +74,15 @@ function render(){
 
   ctx.fillStyle = "white";
   ctx.font = "60px Arial";
-  ctx.fillText("RENDER WORKING", 100, 200);
+  ctx.fillText("CANVAS IS WORKING", 100, 200);
+
+  const text = document.getElementById("headline").value;
+  ctx.fillText(text, 100, 300);
 }
 
 function downloadImage(){
   const link = document.createElement("a");
-  link.download = "test.png";
+  link.download = "canvas-test.png";
   link.href = canvas.toDataURL("image/png");
   link.click();
 }
@@ -98,4 +91,5 @@ function downloadImage(){
 
 </body>
 </html>
+
 
