@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>MNEWS Live Generator</title>
+
+<style>
+@font-face {
+  font-family: 'GeneralSans';
+  src: url('GeneralSans-Semibold.woff2') format('woff2'),
+       url('GeneralSans-Semibold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+}
+
+body{
+  background:#111;
+  color:white;
+  font-family:GeneralSans, Arial, sans-serif;
+  text-align:center;
+  padding:20px;
+}
+
+textarea, input{
+  width:80%;
+  padding:10px;
+  margin:10px 0;
+  font-size:16px;
+}
+
+button{
+  padding:10px 20px;
+  margin:10px;
+  font-size:16px;
+  cursor:pointer;
+}
+
+canvas{
+  margin-top:20px;
+  width:360px;
+  height:450px;
+  border:1px solid #333;
+}
+</style>
+</head>
+<body>
+
+<h2>MNEWS Live Post Generator</h2>
+
+<input type="text" id="category" placeholder="Category (News, India, USA...)" />
+<br>
+
+<textarea id="headline" placeholder="Full headline"></textarea>
+<br>
+
+<input type="text" id="highlight" placeholder="Highlight words (exact match)" />
+<br>
+
+<input type="file" id="imageUpload" accept="image/*">
+<br>
+
+<button onclick="downloadImage()">Download</button>
+
+<br>
+
+<canvas id="canvas" width="1080" height="1350"></canvas>
+
+<script>
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let bgImage = null;
+let overlayLoaded = false;
+
+const overlay = new Image();
+overlay.src = "mnews_overlay.png";
+overlay.onload = function(){
+  overlayLoaded = true;
+  render();
+};
+
+document.getElementById("imageUpload").addEventListener("change", function(e){
+  const reader = new FileReader();
+  reader.onload = function(event){
+    bgImage = new Image();
+    bgImage.onload = render;
+    bgImage.src = event.target.result;
+  };
+  reader.readAsDataURL(e.target.files[0]);
+});
+
+document.getElementById("headline").addEventListener("input", render);
+document.getElementById("category").addEventListener("input", render);
+document.getElementById("highlight").addEventListener("input", render);
+
+function render(){
+
+  ctx.clearRect(0,0,1080,1350);
+
+  const leftMargin = 140;
+
+  if(bgImage){
+    ctx.drawImage(bgImage,0,0,1080,1350);
+  }
+
+  // Black
+
