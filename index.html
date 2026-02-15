@@ -1,7 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>MNEWS Generator</title>
+
+<style>
+body{
+  background:#111;
+  color:white;
+  font-family:Arial, sans-serif;
+  text-align:center;
+  padding:20px;
+}
+
+textarea, input{
+  width:80%;
+  padding:10px;
+  margin:10px 0;
+  font-size:16px;
+}
+
+button{
+  padding:10px 20px;
+  margin:10px;
+  font-size:16px;
+  cursor:pointer;
+}
+
+canvas{
+  width:360px;
+  height:450px;
+  border:1px solid #333;
+  margin-top:20px;
+}
+</style>
+</head>
+<body>
+
+<h2>MNEWS Generator</h2>
+
+<input type="text" id="category" placeholder="Category (News, India...)" />
+<br>
+
+<textarea id="headline" placeholder="Full headline"></textarea>
+<br>
+
+<input type="text" id="highlight" placeholder="Highlight words (exact match optional)" />
+<br>
+
+<input type="file" id="imageUpload" accept="image/*">
+<br>
+
+<button onclick="downloadImage()">Download</button>
+
+<br>
+
+<canvas id="canvas" width="1080" height="1350"></canvas>
+
+<script>
+
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 let bgImage = null;
+const overlay = new Image();
+overlay.src = "mnews_overlay.png";
 
 document.getElementById("imageUpload").addEventListener("change", function(e){
   const reader = new FileReader();
@@ -14,35 +77,128 @@ document.getElementById("imageUpload").addEventListener("change", function(e){
 });
 
 document.getElementById("headline").addEventListener("input", render);
+document.getElementById("category").addEventListener("input", render);
+document.getElementById("highlight").addEventListener("input", render);
 
 function render(){
 
   ctx.clearRect(0,0,1080,1350);
 
+  const leftMargin = 140;
+
   if(bgImage){
     ctx.drawImage(bgImage,0,0,1080,1350);
   }
 
-  // Black Fade
+  // Black fade
   const gradient = ctx.createLinearGradient(0,750,0,1350);
   gradient.addColorStop(0,"rgba(0,0,0,0)");
   gradient.addColorStop(1,"rgba(0,0,0,0.95)");
   ctx.fillStyle = gradient;
   ctx.fillRect(0,0,1080,1350);
 
-  ctx.fillStyle = "white";
-  ctx.font = "60px Arial";
+  const category = document.getElementById("category").value.toUpperCase();
+  const headline = document.getElementById("headline").value;
+  const highlight = document.getElementById("highlight").value;
 
-  const text = document.getElementById("headline").value;
-  ctx.fillText(text, 100, 950);
+  // Category Pill
+  if(category){
+    ctx.font = "600 30px Arial";
+    const textWidth = ctx.measureText(category).width;
+    const paddingX = 32;
+    const boxWidth = textWidth + paddingX * 2;
+    const boxHeight = 56;
+    const boxY = 820;
+
+    drawRoundedRect(ctx, leftMargin, boxY, boxWidth, boxHeight, 28, "#e6ff00");
+
+    ctx.fillStyle = "black";
+    ctx.fillText(category, leftMargin + paddingX, boxY + 36);
+  }
+
+  // Headline
+  if(headline){
+    ctx.font = "600 64px Arial";
+    drawWrappedText(ctx, headline, highlight, leftMargin, 920, 800, 72);
+  }
+
+  // Overlay
+  ctx.drawImage(overlay,0,0);
+}
+
+function drawRoundedRect(ctx, x, y, width, height, radius, color){
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+function drawWrappedText(ctx, text, highlight, x, y, maxWidth, lineHeight){
+
+  const words = text.split(" ");
+  let line = "";
+  let currentY = y;
+
+  for(let i = 0; i < words.length; i++){
+
+    const testLine = line + words[i] + " ";
+    const testWidth = ctx.measureText(testLine).width;
+
+    if(testWidth > maxWidth && i > 0){
+      drawLine(ctx, line, highlight, x, currentY);
+      line = words[i] + " ";
+      currentY += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+
+  drawLine(ctx, line, highlight, x, currentY);
+}
+
+function drawLine(ctx, lineText, highlight, x, y){
+
+  const words = lineText.split(" ");
+  let currentX = x;
+
+  for(let word of words){
+
+    if(word.trim() === "") continue;
+
+    const fullWord = word + " ";
+
+    if(highlight && highlight.includes(word)){
+      ctx.fillStyle = "#e6ff00";
+    } else {
+      ctx.fillStyle = "white";
+    }
+
+    ctx.fillText(fullWord, currentX, y);
+    currentX += ctx.measureText(fullWord).width;
+  }
 }
 
 function downloadImage(){
   const link = document.createElement("a");
-  link.download = "canvas-test.png";
+  link.download = "mnews-post.png";
   link.href = canvas.toDataURL("image/png");
   link.click();
 }
+
+</script>
+
+</body>
+</html>
+
 
 
 
